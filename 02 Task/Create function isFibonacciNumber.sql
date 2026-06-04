@@ -18,7 +18,7 @@ AS
 BEGIN
 	-- временное хранилище возвращаемого значения
 	DECLARE @boolResult BIT
-	-- переменные для расчета числ Фибаначчи
+	-- переменные для расчета чисел Фибаначчи
 	DECLARE @numN1 BIGINT = 1
 	DECLARE @numN2 BIGINT = 1
 	DECLARE @numN3 BIGINT = 1
@@ -40,7 +40,7 @@ BEGIN
 	  END
 	END
 
-	-- Return the result of the function
+	-- Вернем результат
 	RETURN @boolResult
 
 END
