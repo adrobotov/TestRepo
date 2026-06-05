@@ -108,12 +108,14 @@ BEGIN
 	  SET @numI = @numI + 1 
 	END
 
+	-- ускоряет работу внутреннего запроса, строим после заполнения данными чтобы не замедлять вставку
 	CREATE INDEX idx_clients_orders ON dbo.orders
 		(
 			id_clients ASC,
 			id_orders ASC
 		)
 
+	-- собственно сам запрос на статистику и агрегацию
 	SELECT top 5 c.name, t.count_orders
 	  FROM (SELECT o.id_clients as id_clients, COUNT(o.id_orders) as count_orders
 	          FROM orders o
