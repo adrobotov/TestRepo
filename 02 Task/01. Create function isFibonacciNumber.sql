@@ -1,4 +1,3 @@
-
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -6,8 +5,16 @@ GO
 -- =============================================
 -- Author:		А.В. Дроботов
 -- Create date: 04.06.2026
--- Description:	Проверка значениям на число Фибаначчи
+-- Description:	Проверка значениям на число Фибоначчи
 -- =============================================
+
+-- для многоразового использования при тестировании и обновлении на проде
+IF OBJECT_ID(N'dbo.isFibonacciNumber', N'FN') IS NOT NULL
+BEGIN
+    DROP FUNCTION dbo.isFibonacciNumber
+END
+GO
+
 CREATE FUNCTION isFibonacciNumber
 (
 	-- Параметры функции
@@ -18,12 +25,12 @@ AS
 BEGIN
 	-- временное хранилище возвращаемого значения
 	DECLARE @boolResult BIT
-	-- переменные для расчета чисел Фибаначчи
+	-- переменные для расчета числ Фибаначчи
 	DECLARE @numN1 BIGINT = 1
 	DECLARE @numN2 BIGINT = 1
 	DECLARE @numN3 BIGINT = 1
 
-	-- по умолчанию определим что число не принадлежит множеству чисел Фибаначчи
+	-- по умолчанию определим что число не принадлежит множеству чисел Фибоначчи
 	SELECT @boolResult = 0
 
 	IF @pnumValueForCheck >= 1
@@ -40,7 +47,7 @@ BEGIN
 	  END
 	END
 
-	-- Вернем результат
+	-- Return the result of the function
 	RETURN @boolResult
 
 END
