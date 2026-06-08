@@ -3,53 +3,61 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 -- =============================================
--- Author:		А.В. Дроботов
+-- Author:		А.В. Дроботов (оптимизировано)
 -- Create date: 04.06.2026
--- Description:	Проверка значениям на число Фибоначчи
+-- Description:	Скалярная функция проверки значения на принадлежность к числам Фибоначчи
 -- =============================================
 
--- для многоразового использования при тестировании и обновлении на проде
+-- Для многоразового использования при тестировании и обновлении на проде
 IF OBJECT_ID(N'dbo.isFibonacciNumber', N'FN') IS NOT NULL
 BEGIN
     DROP FUNCTION dbo.isFibonacciNumber
 END
 GO
 
-CREATE FUNCTION isFibonacciNumber
+CREATE FUNCTION dbo.isFibonacciNumber
 (
-	-- Параметры функции
-	@pnumValueForCheck BIGINT
+    @pnumValueForCheck BIGINT
 )
 RETURNS BIT
 AS
 BEGIN
-	-- временное хранилище возвращаемого значения
-	DECLARE @boolResult BIT
-	-- переменные для расчета числ Фибаначчи
-	DECLARE @numN1 BIGINT = 1
-	DECLARE @numN2 BIGINT = 1
-	DECLARE @numN3 BIGINT = 1
+    -- 1. Обработка граничных и отрицательных значений
+    -- Отрицательные числа не являются числами Фибоначчи
+    IF @pnumValueForCheck < 0
+        RETURN 0;
 
-	-- по умолчанию определим что число не принадлежит множеству чисел Фибоначчи
-	SELECT @boolResult = 0
+    -- 0 и 1 являются числами Фибоначчи по математическому определению (F0 и F1)
+    IF @pnumValueForCheck = 0 OR @pnumValueForCheck = 1
+        RETURN 1;
 
-	IF @pnumValueForCheck >= 1
-	BEGIN
-	  WHILE @pnumValueForCheck > @numN2
-	  BEGIN
-	    SET @numN3 = @numN1 + @numN2
-		SET @numN1 = @numN2
-		SET @numN2 = @numN3
-	  END
-	  IF @pnumValueForCheck = @numN2
-	  BEGIN
-	    SET @boolResult = 1
-	  END
-	END
+    -- 2. Инициализация переменных для расчета
+    DECLARE @numN1 BIGINT = 1;
+    DECLARE @numN2 BIGINT = 1;
+    DECLARE @numN3 BIGINT;
 
-	-- Return the result of the function
-	RETURN @boolResult
+    -- 3. Цикл генерации чисел Фибоначчи
+    WHILE @pnumValueForCheck > @numN2
+    BEGIN
+        -- КРИТИЧЕСКАЯ ЗАЩИТА ОТ ПЕРЕПОЛНЕНИЯ ТИПА BIGINT:
+        -- 93-е число Фибоначчи превышает максимальное значение BIGINT (9 223 372 036 854 775 807).
+        -- Если (Целевое число - текущее число Фибоначчи) < предыдущее число,
+        -- то следующее число Фибоначчи (@numN1 + @numN2) заведомо превысит целевое.
+        -- Мы прерываем цикл досрочно, избегая фатальной ошибки переполнения 
+        -- и экономя процессорное время.
+        IF @pnumValueForCheck - @numN2 < @numN1
+            BREAK;
 
+        SET @numN3 = @numN1 + @numN2;
+        SET @numN1 = @numN2;
+        SET @numN2 = @numN3;
+    END
+
+    -- 4. Проверка на точное совпадение после завершения цикла
+    IF @pnumValueForCheck = @numN2
+        RETURN 1;
+
+    -- Если совпадения не найдено, возвращаем 0 (False)
+    RETURN 0;
 END
 GO
-

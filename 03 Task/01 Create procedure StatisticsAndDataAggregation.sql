@@ -116,12 +116,16 @@ BEGIN
 		)
 
 	-- собственно сам запрос на статистику и агрегацию
-	SELECT top 5 c.name, t.count_orders
-	  FROM (SELECT o.id_clients as id_clients, COUNT(o.id_orders) as count_orders
-	          FROM orders o
-		    GROUP BY o.id_clients) as t
-      INNER JOIN clients as c on c.id_clients = t.id_clients
-	  ORDER BY t.count_orders
+	SELECT TOP 5 
+		c.name, 
+		COUNT(o.id_orders) AS count_orders
+	FROM clients AS c
+	INNER JOIN orders AS o ON c.id_clients = o.id_clients
+	GROUP BY 
+		c.id_clients, 
+		c.name
+	ORDER BY 
+		count_orders DESC
 
 
 	-- удаляем таблицу заказов если она существует
